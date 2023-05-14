@@ -7,12 +7,12 @@ $urls = [
     "mytongdy" => [
         "ios" => "/app/id1473098643",
         "android" => "",
-        "apk" => "",
+        "apk" => "MT-Handy_2.1.9.apk",
     ],
     "bhand" => [
         "ios" => "/app/id6449812443",
         "android" => "com.tongdy.tdbleconfig",
-        "apk" => "",
+        "apk" => "BHand_1.0.2.apk",
     ],
     "tdwifiservice" => [
         "ios" => "/app/id1497890956",
@@ -83,9 +83,18 @@ class gotoAppStore {
     }
 
     function notFound() {
-        header("Content-type: text/plain");
-        echo "APP not found";
+        $lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
+        $lang = substr($lang, 0, 2);
+        $info = '';
+        if ($lang == "zh") {
+            $info = '找不到要下载的程序，可能是这个程序目前不支持当前设备。';
+        } elseif ($lang == "es") {
+            $info = 'No se pudo encontrar el programa para descargar. Es posible que el programa no sea actualmente compatible con el dispositivo actual.';
+        } else {
+            $info = 'The program to download could not be found. It may be that the program does not currently support the current device.';
+        }
         header("HTTP/1.1 404 Not Found");
+        echo "<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,minimal-ui:ios'><title>Not Found</title></head><body>$info</body></html>";
         exit;
     }
 
@@ -116,14 +125,30 @@ class gotoAppStore {
             }
         }
         if (empty($url)) {
-            $this->notFound();
+            if (isset($urls[$dlAPP]["apk"]) && !empty($urls[$dlAPP]["apk"])) {
+                $url = $urls[$dlAPP]["apk"];
+            } else {
+                $this->notFound();
+            }
         }
         return $url;
+    }
+
+    function showHMTL(): string {
+        $url = $this->getDLURL();
+        $lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
+        $lang = substr($lang, 0, 2);
+        $info = '';
+        if ($lang == "zh") {
+            $info = '正在下载';
+        } elseif ($lang == "es") {
+            $info = 'Descargando';
+        } else {
+            $info = 'Downloading';
+        }
+        return "<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,minimal-ui:ios'><meta http-equiv='refresh' content='1;url=DL/$url'><title>$info...</title></head><body>$info <a href='DL/$url'>$url</a> ...</body></html>";
     }
 }
 
 $gotoAppStore = new gotoAppStore();
-$url = $gotoAppStore->getDLURL();
-$gotoHTML = "<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,minimal-ui:ios'><meta http-equiv='refresh' content='0;url=$url'><title>Redirecting...</title></head><body>Redirecting <a href='$url'>$url</a> ...</body></html>";
-header("Content-type: text/plain");
-echo $gotoHTML;
+echo $gotoAppStore->showHMTL();

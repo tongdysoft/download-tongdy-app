@@ -3,3 +3,4 @@ composer.lock
 *.mmdb
 *.dat
 *.phar
+*.apk
