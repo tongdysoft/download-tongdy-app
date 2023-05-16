@@ -4,3 +4,4 @@ composer.lock
 *.dat
 *.phar
 *.apk
+*.png

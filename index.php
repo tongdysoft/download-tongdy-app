@@ -3,27 +3,38 @@ require_once 'vendor/autoload.php';
 
 use GeoIp2\Database\Reader;
 
-$urls = [
-    "mytongdy" => [
-        "ios" => "/app/id1473098643",
-        "android" => "",
-        "apk" => "MT-Handy_2.1.9.apk",
-    ],
-    "bhand" => [
-        "ios" => "/app/id6449812443",
-        "android" => "com.tongdy.tdbleconfig",
-        "apk" => "BHand_1.0.2.apk",
-    ],
-    "tdwifiservice" => [
-        "ios" => "/app/id1497890956",
-        "android" => "",
-        "apk" => "",
-    ]
-];
+class URLs {
+    const l = [
+        'mytongdy' => [
+            'name' => 'MyTongdy',
+            'ios' => '/app/id1473098643',
+            'android' => '',
+            'apk' => 'DL/MT-Handy/MT-Handy_2.1.9.apk',
+        ],
+        'bhand' => [
+            'name' => 'BHand',
+            'ios' => '/app/id6449812443',
+            'android' => 'com.tongdy.tdbleconfig',
+            'apk' => 'DL/BHand/BHand_1.0.2.apk',
+        ],
+        'tdwifiservice' => [
+            'name' => 'TDWifiService',
+            'ios' => '/app/id1497890956',
+            'android' => '',
+            'apk' => '',
+        ]
+    ];
+}
 
 class Hands {
-    const AppleAppStore = "itms-apps://apps.apple.com/"; // +cn+
-    const GooglePlayStore = "https://play.google.com/store/apps/details?id=";
+    const AppleAppStore = 'itms-apps://apps.apple.com/'; // +cn+
+    const GooglePlayStore = 'https://play.google.com/store/apps/details?id=';
+}
+
+class Images {
+    const AppleAppStore = ['img/appstore.png', 'Download on the App Store'];
+    const GooglePlayStore = ['img/playstore.png', 'Get it on Google Play'];
+    const APK = ['img/apk.png', 'Download APK'];
 }
 
 class DeviceType {
@@ -33,6 +44,7 @@ class DeviceType {
 }
 
 class gotoAppStore {
+    const htmlTemp = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,minimal-ui:ios">'; //<title>Not Found</title></head><body></body></html>
     /**
      * @description: 獲取系統型別
      * @return int [DeviceType] 系統型別
@@ -58,20 +70,13 @@ class gotoAppStore {
     function getCountry(string $ip, string $geofile = 'Country.mmdb', bool $isCity = false): string {
         $cityDbReader = new Reader($geofile);
         $record = $isCity ? $cityDbReader->city($ip) : $cityDbReader->country($ip);
-        /* json_encode($record):
-    {
-        "country": {
-            "iso_code": "US"
-        },
-        "traits": {
-            "ip_address": "128.101.101.101",
-            "prefix_len": 16
-        }
-    }
-    */
         return strtoupper($record->country->isoCode);
     }
 
+    /**
+     * @description: 獲取客戶端 IP 地址
+     * @return String IP 地址
+     */
     function getRealIP(): string {
         $ip = $_SERVER['REMOTE_ADDR'];
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
@@ -82,27 +87,22 @@ class gotoAppStore {
         return $ip;
     }
 
+    /**
+     * @description: 返回 404 頁面
+     */
     function notFound() {
-        $lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
-        $lang = substr($lang, 0, 2);
-        $info = '';
-        if ($lang == "zh") {
-            $info = '找不到要下载的程序，可能是这个程序目前不支持当前设备。';
-        } elseif ($lang == "es") {
-            $info = 'No se pudo encontrar el programa para descargar. Es posible que el programa no sea actualmente compatible con el dispositivo actual.';
-        } else {
-            $info = 'The program to download could not be found. It may be that the program does not currently support the current device.';
-        }
         header("HTTP/1.1 404 Not Found");
-        echo "<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,minimal-ui:ios'><title>Not Found</title></head><body>$info</body></html>";
         exit;
     }
 
+    /**
+     * @description: 獲取下載地址
+     * @return String 下載地址
+     */
     function getDLURL(): string {
         $dlAPP = $_GET['app'] ?? $_GET['APP'] ?? $_POST['app'] ?? $_POST['APP'] ?? "";
         $dlAPP = strtolower($dlAPP);
-        global $urls;
-        if (empty($dlAPP) || !isset($urls[$dlAPP])) {
+        if (empty($dlAPP) || !isset(URLs::l[$dlAPP])) {
             $this->notFound();
         }
         $ip = $this->getRealIP();
@@ -110,45 +110,57 @@ class gotoAppStore {
         $deviceType = $this->getDeviceType();
         $url = "";
         if ($deviceType == DeviceType::IOS) {
-            $url = Hands::AppleAppStore . strtolower($country) . $urls[$dlAPP]["ios"];
+            $url = Hands::AppleAppStore . strtolower($country) . URLs::l[$dlAPP]["ios"];
         } elseif ($deviceType == DeviceType::ANDROID) {
-            if (!isset($urls[$dlAPP]["android"]) && !isset($urls[$dlAPP]["apk"])) {
-                $this->notFound();
+            if (!isset(URLs::l[$dlAPP]["android"]) && !isset(URLs::l[$dlAPP]["apk"])) {
+                $this->showAllDL($dlAPP, $country);
             }
             if ($country == "CN") {
-                $url = $urls[$dlAPP]["apk"];
+                $url = URLs::l[$dlAPP]["apk"];
                 if (empty($url)) {
-                    $url = Hands::GooglePlayStore . $urls[$dlAPP]["android"];
+                    $url = Hands::GooglePlayStore . URLs::l[$dlAPP]["android"];
                 }
             } else {
-                $url = Hands::GooglePlayStore . $urls[$dlAPP]["android"];
+                $url = Hands::GooglePlayStore . URLs::l[$dlAPP]["android"];
             }
         }
         if (empty($url)) {
-            if (isset($urls[$dlAPP]["apk"]) && !empty($urls[$dlAPP]["apk"])) {
-                $url = $urls[$dlAPP]["apk"];
-            } else {
-                $this->notFound();
-            }
+            $this->showAllDL($dlAPP, $country);
         }
         return $url;
     }
 
+    /**
+     * @description: 輸出用於跳轉到目標地址的網頁
+     * @return String HTML
+     */
     function showHMTL(): string {
         $url = $this->getDLURL();
-        $lang = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
-        $lang = substr($lang, 0, 2);
-        $info = '';
-        if ($lang == "zh") {
-            $info = '正在下载';
-        } elseif ($lang == "es") {
-            $info = 'Descargando';
-        } else {
-            $info = 'Downloading';
+        return $this::htmlTemp . "<meta http-equiv=\"refresh\" content=\"1;url=$url\"><title>Redirecting...</title></head><body>-> <a href=\"$url\">$url</a> ...</body></html>";
+    }
+
+    /**
+     * @description: 輸出包含所有下載地址的網頁
+     * @param String dlAPP APP 名稱
+     * @param String country 國家代碼
+     */
+    function showAllDL(string $dlAPP, string $country = "US") {
+        $syss = URLs::l[$dlAPP];
+        $imagePrep = 'width="200"';
+        $name = $syss["name"];
+        $html = $this::htmlTemp . "<title>$name</title></head><body style=\"text-align:center;\">( ↓ ) APP DOWNLOAD<hr/><h1>$name</h1>";
+        if (isset($syss["ios"]) && !empty($syss["ios"])) {
+            $html .= '<p><a href="' . Hands::AppleAppStore . strtolower($country) . $syss["ios"] . '"><img ' . $imagePrep . ' src="' . Images::AppleAppStore[0] . '" alt="' . Images::AppleAppStore[1] . '"></a></p>';
         }
-        return "<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,minimal-ui:ios'><meta http-equiv='refresh' content='1;url=DL/$url'><title>$info...</title></head><body>$info <a href='DL/$url'>$url</a> ...</body></html>";
+        if (isset($syss["android"]) && !empty($syss["android"])) {
+            $html .= '<p><a href="' . Hands::GooglePlayStore . $syss["android"] . '"><img ' . $imagePrep . ' src="' . Images::GooglePlayStore[0] . '" alt="' . Images::GooglePlayStore[1] . '"></a></p>';
+        }
+        if (isset($syss["apk"]) && !empty($syss["apk"])) {
+            $html .= '<p><a href="' . $syss["apk"] . '"><img ' . $imagePrep . ' src="' . Images::APK[0] . '" alt="' . Images::APK[1] . '"></a></p>';
+        }
+        exit($html . '</body></html>');
     }
 }
 
 $gotoAppStore = new gotoAppStore();
-echo $gotoAppStore->showHMTL();
+exit($gotoAppStore->showHMTL());
