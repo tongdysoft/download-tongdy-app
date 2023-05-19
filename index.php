@@ -29,6 +29,7 @@ class URLs {
 class Hands {
     const AppleAppStore = 'itms-apps://apps.apple.com/'; // +cn+
     const GooglePlayStore = 'https://play.google.com/store/apps/details?id=';
+    const BaseURL = 'https://www.tongdy.com/app/?app=';
 }
 
 class Images {
@@ -148,15 +149,16 @@ class gotoAppStore {
         $syss = URLs::l[$dlAPP];
         $imagePrep = 'width="200"';
         $name = $syss["name"];
-        $html = $this::htmlTemp . "<title>$name</title></head><body style=\"text-align:center;\">( ↓ ) APP DOWNLOAD<hr/><h1>$name</h1>";
+        $qrimg = 'qrcode/' . $dlAPP . '.png';
+        $html = $this::htmlTemp . "<title>$name</title></head><body style=\"text-align:center;\">( ↓ ) APP DOWNLOAD<hr/><h1>$name</h1><img $imagePrep src=\"$qrimg\" alt=\"$name\" />";
         if (isset($syss["ios"]) && !empty($syss["ios"])) {
-            $html .= '<p><a href="' . Hands::AppleAppStore . strtolower($country) . $syss["ios"] . '"><img ' . $imagePrep . ' src="' . Images::AppleAppStore[0] . '" alt="' . Images::AppleAppStore[1] . '"></a></p>';
+            $html .= '<p><a href="' . Hands::AppleAppStore . strtolower($country) . $syss["ios"] . '"><img ' . $imagePrep . ' src="' . Images::AppleAppStore[0] . '" alt="' . Images::AppleAppStore[1] . '" /></a></p>';
         }
         if (isset($syss["android"]) && !empty($syss["android"])) {
-            $html .= '<p><a href="' . Hands::GooglePlayStore . $syss["android"] . '"><img ' . $imagePrep . ' src="' . Images::GooglePlayStore[0] . '" alt="' . Images::GooglePlayStore[1] . '"></a></p>';
+            $html .= '<p><a href="' . Hands::GooglePlayStore . $syss["android"] . '"><img ' . $imagePrep . ' src="' . Images::GooglePlayStore[0] . '" alt="' . Images::GooglePlayStore[1] . '" /></a></p>';
         }
         if (isset($syss["apk"]) && !empty($syss["apk"])) {
-            $html .= '<p><a href="' . $syss["apk"] . '"><img ' . $imagePrep . ' src="' . Images::APK[0] . '" alt="' . Images::APK[1] . '"></a></p>';
+            $html .= '<p><a href="' . $syss["apk"] . '"><img ' . $imagePrep . ' src="' . Images::APK[0] . '" alt="' . Images::APK[1] . '" /></a></p>';
         }
         exit($html . '</body></html>');
     }
