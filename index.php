@@ -1,42 +1,11 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,minimal-ui:ios">
 <?php
 require_once 'vendor/autoload.php';
+require_once 'lang.php';
+require_once 'config.php';
 
 use GeoIp2\Database\Reader;
-
-class URLs {
-    const l = [
-        'mytongdy' => [
-            'name' => 'MyTongdy',
-            'ios' => '/app/id1473098643',
-            'android' => '',
-            'apk' => 'DL/MT-Handy/MT-Handy_2.1.9.apk',
-        ],
-        'bhand' => [
-            'name' => 'BHand',
-            'ios' => '/app/id6449812443',
-            'android' => 'com.tongdy.tdbleconfig',
-            'apk' => 'DL/BHand/BHand_1.0.2.apk',
-        ],
-        'tdwifiservice' => [
-            'name' => 'TDWifiService',
-            'ios' => '/app/id1497890956',
-            'android' => '',
-            'apk' => '',
-        ]
-    ];
-}
-
-class Hands {
-    const AppleAppStore = 'itms-apps://apps.apple.com/'; // +cn+
-    const GooglePlayStore = 'https://play.google.com/store/apps/details?id=';
-    const BaseURL = 'https://www.tongdy.com/app/?app=';
-}
-
-class Images {
-    const AppleAppStore = ['img/appstore.png', 'Download on the App Store'];
-    const GooglePlayStore = ['img/playstore.png', 'Get it on Google Play'];
-    const APK = ['img/apk.png', 'Download APK'];
-}
 
 class DeviceType {
     const OTHER = 0;
@@ -45,7 +14,6 @@ class DeviceType {
 }
 
 class gotoAppStore {
-    const htmlTemp = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,minimal-ui:ios">'; //<title>Not Found</title></head><body></body></html>
     /**
      * @description: 獲取系統型別
      * @return int [DeviceType] 系統型別
@@ -92,8 +60,9 @@ class gotoAppStore {
      * @description: 返回 404 頁面
      */
     function notFound() {
-        header("HTTP/1.1 404 Not Found");
-        exit;
+        header("HTTP/1.1 404 Not Found", true, 404);
+        echo Lang::l("Application not found");
+        exit('</body></html>');
     }
 
     /**
@@ -105,6 +74,7 @@ class gotoAppStore {
         $dlAPP = strtolower($dlAPP);
         if (empty($dlAPP) || !isset(URLs::l[$dlAPP])) {
             $this->notFound();
+            return '';
         }
         $ip = $this->getRealIP();
         $country = $this->getCountry($ip);
@@ -115,6 +85,7 @@ class gotoAppStore {
         } elseif ($deviceType == DeviceType::ANDROID) {
             if (!isset(URLs::l[$dlAPP]["android"]) && !isset(URLs::l[$dlAPP]["apk"])) {
                 $this->showAllDL($dlAPP, $country);
+                return '';
             }
             if ($country == "CN") {
                 $url = URLs::l[$dlAPP]["apk"];
@@ -127,6 +98,7 @@ class gotoAppStore {
         }
         if (empty($url)) {
             $this->showAllDL($dlAPP, $country);
+            return '';
         }
         return $url;
     }
@@ -135,9 +107,14 @@ class gotoAppStore {
      * @description: 輸出用於跳轉到目標地址的網頁
      * @return String HTML
      */
-    function showHMTL(): string {
+    function showHMTL() {
         $url = $this->getDLURL();
-        return $this::htmlTemp . "<meta http-equiv=\"refresh\" content=\"1;url=$url\"><title>Redirecting...</title></head><body>-> <a href=\"$url\">$url</a> ...</body></html>";
+        if (empty($url)) {
+            return;
+        }
+        $txt = Lang::l('Redirecting');
+        echo "<title>$txt...</title></head><body><p>$txt...</p><p><a href=\"$url\">$url</a></p>";
+        header('Location: ' . $url, true, 302);
     }
 
     /**
@@ -147,22 +124,29 @@ class gotoAppStore {
      */
     function showAllDL(string $dlAPP, string $country = "US") {
         $syss = URLs::l[$dlAPP];
-        $imagePrep = 'width="200"';
-        $name = $syss["name"];
+        $name = Lang::l($syss["name"]);
         $qrimg = 'qrcode/' . $dlAPP . '.png';
-        $html = $this::htmlTemp . "<title>$name</title></head><body style=\"text-align:center;\">( ↓ ) APP DOWNLOAD<hr/><h1>$name</h1><img $imagePrep src=\"$qrimg\" alt=\"$name\" />";
+        $qrinfo = Lang::l('Use the "Camera" app to scan the QR code, automatically identify the system and download');
+        $txt = Lang::l('APP Download');
+        $html = "<title>$name $txt</title></head><body style=\"text-align:center;\"><h1>$name</h1><img src=\"$qrimg\" title=\"$qrinfo\" alt=\"$name\" /><br/><div style=\"font-size:small;\">$qrinfo</div><br/>";
+        $txt = Lang::l('Download on the App Store');
         if (isset($syss["ios"]) && !empty($syss["ios"])) {
-            $html .= '<p><a href="' . Hands::AppleAppStore . strtolower($country) . $syss["ios"] . '"><img ' . $imagePrep . ' src="' . Images::AppleAppStore[0] . '" alt="' . Images::AppleAppStore[1] . '" /></a></p>';
+            $html .= '<p><a title="' . $txt . '" href="' . str_replace('itms-apps', 'https', Hands::AppleAppStore) . strtolower($country) . $syss["ios"] . '" target="_blank"><img src="' . Images::AppleAppStore . '" alt="' . $txt . '" /></a></p>';
         }
+        $txt = Lang::l('Get it on Google Play');
         if (isset($syss["android"]) && !empty($syss["android"])) {
-            $html .= '<p><a href="' . Hands::GooglePlayStore . $syss["android"] . '"><img ' . $imagePrep . ' src="' . Images::GooglePlayStore[0] . '" alt="' . Images::GooglePlayStore[1] . '" /></a></p>';
+            $html .= '<p><a title="' . $txt . '" href="' . Hands::GooglePlayStore . $syss["android"] . '" target="_blank"><img src="' . Images::GooglePlayStore . '" alt="' . $txt . '" /></a></p>';
         }
+        $txt = Lang::l('Download Android APK');
         if (isset($syss["apk"]) && !empty($syss["apk"])) {
-            $html .= '<p><a href="' . $syss["apk"] . '"><img ' . $imagePrep . ' src="' . Images::APK[0] . '" alt="' . Images::APK[1] . '" /></a></p>';
+            $html .= '<p><a title="' . $txt . '" href="' . $syss["apk"] . '" target="_blank"><img src="' . Images::APK . '" alt="' . $txt . '" /></a></p>';
         }
-        exit($html . '</body></html>');
+        echo $html;
     }
 }
 
 $gotoAppStore = new gotoAppStore();
-exit($gotoAppStore->showHMTL());
+$gotoAppStore->showHMTL();
+?>
+<br/><p style="font-size:small;"><a href="https://beian.miit.gov.cn/" target="_blank">京ICP备18012125号-1</a></p>
+</body></html>
