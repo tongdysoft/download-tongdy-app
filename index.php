@@ -131,15 +131,15 @@ class gotoAppStore {
         $html = "<title>$name $txt</title></head><body style=\"text-align:center;\"><h1>$name</h1><img src=\"$qrimg\" title=\"$qrinfo\" alt=\"$name\" /><br/><div style=\"font-size:small;\">$qrinfo</div><br/>";
         $txt = Lang::l('Download on the App Store');
         if (isset($syss["ios"]) && !empty($syss["ios"])) {
-            $html .= '<p><a title="' . $txt . '" href="' . str_replace('itms-apps', 'https', Hands::AppleAppStore) . strtolower($country) . $syss["ios"] . '" target="_blank"><img src="' . Images::AppleAppStore . '" alt="' . $txt . '" /></a></p>';
+            $html .= '<p><a title="' . $txt . '" href="' . str_replace('itms-apps', 'https', Hands::AppleAppStore) . strtolower($country) . $syss["ios"] . '" target="_blank"><img src="img/' . Lang::l('app-store-en') . '.png" alt="' . $txt . '" /></a></p>';
         }
         $txt = Lang::l('Get it on Google Play');
         if (isset($syss["android"]) && !empty($syss["android"])) {
-            $html .= '<p><a title="' . $txt . '" href="' . Hands::GooglePlayStore . $syss["android"] . '" target="_blank"><img src="' . Images::GooglePlayStore . '" alt="' . $txt . '" /></a></p>';
+            $html .= '<p><a title="' . $txt . '" href="' . Hands::GooglePlayStore . $syss["android"] . '" target="_blank"><img src="img/' . Lang::l('play-store-en') . '.png" alt="' . $txt . '.png" /></a></p>';
         }
         $txt = Lang::l('Download Android APK');
         if (isset($syss["apk"]) && !empty($syss["apk"])) {
-            $html .= '<p><a title="' . $txt . '" href="' . $syss["apk"] . '" target="_blank"><img src="' . Images::APK . '" alt="' . $txt . '" /></a></p>';
+            $html .= '<p><a title="' . $txt . '" href="' . $syss["apk"] . '" target="_blank"><img src="img/' . Lang::l('apk-en') . '.png" alt="' . $txt . '" /></a></p>';
         }
         echo $html;
     }

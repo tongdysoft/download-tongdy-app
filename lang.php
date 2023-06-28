@@ -1,6 +1,18 @@
 <?php
 class Lang {
     const langData = [
+        'app-store-en' => [
+            'zh' => 'app-store-cn',
+            'es' => 'app-store-es'
+        ],
+        'play-store-en' => [
+            'zh' => 'play-store-cn',
+            'es' => 'play-store-es'
+        ],
+        'apk-en' => [
+            'zh' => 'apk-cn',
+            'es' => 'apk-es'
+        ],
         'Redirecting' => [
             'zh' => '正在跳转',
             'es' => 'Redirigiendo'
