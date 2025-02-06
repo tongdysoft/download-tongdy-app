@@ -45,12 +45,15 @@ class Lang {
             'es' => 'Aplicación no encontrada'
         ],
     ];
-    static function l(string $info) {
+    static function langName() {
         $lang = $_GET['lang'] ?? $_GET['LANG'] ?? $_POST['lang'] ?? $_POST['LANG'] ?? "";
         if (empty($lang)) {
             $lang = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
         }
-        $lang = strtolower($lang);
+        return strtolower($lang);
+    }
+    static function l(string $info) {
+        $lang = self::langName();
         if (!isset(self::langData[$info][$lang])) {
             return $info;
         }

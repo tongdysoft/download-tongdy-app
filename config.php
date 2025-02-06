@@ -5,13 +5,13 @@ class URLs {
             'name' => 'MT-Handy',
             'ios' => '/app/id1473098643',
             'android' => 'com.tongdy.mytongdy',
-            'apk' => 'DL/MT-Handy/MT-Handy_2.1.9.apk',
+            'apk' => 'DL/MT-Handy/MT-Handy v3.1.0.apk',
         ],
         'bhand' => [
             'name' => 'BHand',
             'ios' => '/app/id6449812443',
             'android' => 'com.tongdy.tdbleconfig',
-            'apk' => 'DL/BHand/BHand_1.0.2.apk',
+            'apk' => 'DL/BHand/BHand v2.0.0(185).apk',
         ],
         'tdwifiservice' => [
             'name' => 'TDWifiService',

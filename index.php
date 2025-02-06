@@ -14,6 +14,11 @@ class DeviceType {
 }
 
 class gotoAppStore {
+    function echoHeader(string $name, string $content) {
+        $content = str_replace('"', "'", $content);
+        echo "<meta name=\"$name\" content=\"$content\" />\n";
+    }
+
     /**
      * @description: 獲取系統型別
      * @return int [DeviceType] 系統型別
@@ -70,28 +75,32 @@ class gotoAppStore {
      * @return String 下載地址
      */
     function getDLURL(): string {
+        $this->echoHeader('DLLang', Lang::langName());
         $dlAPP = $_GET['app'] ?? $_GET['APP'] ?? $_POST['app'] ?? $_POST['APP'] ?? "";
         $dlAPP = strtolower($dlAPP);
+        $this->echoHeader('DLAPP', $dlAPP);
+        $this->echoHeader('DLList', json_encode(URLs::l[$dlAPP]));
         if (empty($dlAPP) || !isset(URLs::l[$dlAPP])) {
             $this->notFound();
             return '';
         }
         $ip = $this->getRealIP();
         $country = $this->getCountry($ip);
+        $this->echoHeader('DLIP', $ip);
+        $this->echoHeader('DLCountry', $country);
         $deviceType = $this->getDeviceType();
         $url = "";
         if ($deviceType == DeviceType::IOS) {
+            $this->echoHeader('DLDevice', 'IOS');
             $url = Hands::AppleAppStore . strtolower($country) . URLs::l[$dlAPP]["ios"];
         } elseif ($deviceType == DeviceType::ANDROID) {
+            $this->echoHeader('DLDevice', 'ANDROID');
             if (!isset(URLs::l[$dlAPP]["android"]) && !isset(URLs::l[$dlAPP]["apk"])) {
                 $this->showAllDL($dlAPP, $country);
                 return '';
             }
             if ($country == "CN") {
                 $url = URLs::l[$dlAPP]["apk"];
-                if (empty($url)) {
-                    $url = Hands::GooglePlayStore . URLs::l[$dlAPP]["android"];
-                }
             } else {
                 $url = Hands::GooglePlayStore . URLs::l[$dlAPP]["android"];
             }
